@@ -1,32 +1,32 @@
 package structdEnv
 
 import (
+	"errors"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-type StructdEnvironment[T any] interface {
-	Init() T
-}
-
-
 func main() {
 }
 
-func Make[T any]() T {
-    return coerceType[T](envMap())
+func Get[T any]() T {
+	rm, err := coerceType[T](envMap())
+	if err != nil {
+		println("error trying to coerce type")
+	}
+	return rm
 }
 
-func coerceType[T any](envMap map[string]string) T {
+func coerceType[T any](envMap map[string]string) (T, error) {
 
 	var t T
 	tType := reflect.TypeOf(t)
 	elem := reflect.ValueOf(&t).Elem()
 
 	if elem.Kind() != reflect.Struct {
-		panic("Not a struct")
+		return t, errors.New("not a struct")
 	}
 
 	envKeyMap := make(map[string]string)
@@ -61,7 +61,7 @@ func coerceType[T any](envMap map[string]string) T {
 			}
 		}
 	}
-	return t
+	return t, nil
 }
 
 func setValue(val *reflect.Value, envVal *string, kind reflect.Kind) {
@@ -86,9 +86,9 @@ func setValue(val *reflect.Value, envVal *string, kind reflect.Kind) {
 		if err != nil {
 			break
 		}
-        if i < 0 {
-            i = 0
-        }
+		if i < 0 {
+			i = 0
+		}
 		val.SetUint(uint64(i))
 		break
 	case reflect.Float32:
