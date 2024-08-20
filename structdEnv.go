@@ -1,7 +1,9 @@
 package structdEnv
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -12,7 +14,8 @@ func main() {
 }
 
 func Get[T any]() T {
-	rm, err := coerceType[T](envMap())
+	em := getEnvMap()
+	rm, err := coerceType[T](em)
 	if err != nil {
 		println("error trying to coerce type")
 	}
@@ -118,6 +121,39 @@ func setValue(val *reflect.Value, envVal *string, kind reflect.Kind) {
 		val.SetString(*envVal)
 		break
 	}
+}
+
+func getEnvMap() map[string]string {
+
+	em := envMap()
+	fm := fileEnvMap()
+	if len(fm) > 0 {
+		for k, v := range fm {
+			sv := fmt.Sprintf("%v", v)
+			em[k] = sv
+		}
+	}
+	return em
+}
+
+func fileEnvMap() map[string]interface{} {
+	if _, err := os.Stat(".env.json"); os.IsNotExist(err) {
+		return make(map[string]interface{})
+	}
+
+	envKeyMap := make(map[string]interface{})
+	envFile, err := os.ReadFile(".env.json")
+
+	if err != nil {
+		return envKeyMap
+	}
+
+	err = json.Unmarshal(envFile, &envKeyMap)
+	if err != nil {
+		return envKeyMap
+	}
+
+	return envKeyMap
 }
 
 func envMap() map[string]string {
