@@ -25,7 +25,6 @@ func TestLower(test *testing.T) {
 	if structdEnv.FirstName == "" {
 		test.Fail()
 	}
-
 }
 
 func TestPriority(test *testing.T) {

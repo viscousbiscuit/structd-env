@@ -25,3 +25,15 @@ to specify the environment variable name to use for that field.
 
 Adding `env` tags to your struct will allow you to specify the environment variable name to use for that field. If no `env` tag is provided, the field name will be used as the environment variable name.
 
+
+## .env.json
+
+If you provide an `.env.json` file the values will override the environment variables. Nested objects are not supported, only top level key value pairs are supported.
+
+```json
+{
+    "frst_name": "Tom",
+    "last_name": "Smith",
+    "AGE": 30,
+}
+```
