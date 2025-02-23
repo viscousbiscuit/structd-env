@@ -8,18 +8,64 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-func main() {
+var (
+	instance any
+	once     sync.Once
+)
+
+type env[T any] struct {
+	value *T
 }
 
-func Get[T any]() T {
+// Creates a new singleton instance of the struct
+func GetInstance[T any]() (env[T], error) {
+	var er error
+
+	once.Do(func() {
+		em := getEnvMap()
+		rm, err := coerceType[T](em)
+		if err != nil {
+			er = err
+		} else {
+			e := env[T]{}
+			e.value = &rm
+			instance = e
+		}
+	})
+
+	if er != nil {
+		return env[T]{}, er
+	}
+
+	return instance.(env[T]), nil
+}
+
+// Returns the current environment variables
+func (e *env[T]) Get() T {
+	return *e.value
+}
+
+// Returns the current environment variables
+// and updates the cached struct
+func (e *env[T]) Flush() (T, error) {
 	em := getEnvMap()
 	rm, err := coerceType[T](em)
 	if err != nil {
-		println("error trying to coerce type")
+		return *e.value, err
 	}
-	return rm
+
+	e.value = &rm
+	return *e.value, nil
+}
+
+// Replaces the current instance of the struct
+// with the one provided
+func (e *env[T]) Set(val T) T {
+	e.value = &val
+	return *e.value
 }
 
 func coerceType[T any](envMap map[string]string) (T, error) {

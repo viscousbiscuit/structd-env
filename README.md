@@ -1,39 +1,80 @@
 # structd-env
 
-A simple package to manage environment variables in a structured way.
+A **simple** and **blazingly fast** 🔥 package for managing environment variables in a structured way.
 
-## Usage
+This package:
+
+- **Has zero external dependencies**
+- **Leverages generics and minimal reflection** to map environment variables to a struct
+- **Caches results** to eliminate reflection overhead on subsequent calls
+- **Supports a `.env.json` file** for local development
+- **Handles multiple casing styles** automatically (snake_case, PascalCase, dash-case, camelCase)
+- **Allows custom struct tags** (`env` tag) for fine-tuned variable mapping
+
+### Supported Types
+
+The package supports the following types for environment variable mapping:
+
+- `bool`
+- `string`
+- `int`, `int8`, `int16`, `int32`, `int64`
+- `uint`, `uint8`, `uint16`, `uint32`, `uint64`
+- `float32`, `float64`
+
+## Installation
+
+```sh
+go get github.com/viscousbiscuit/structd-env
 
 ```
+
+```go
+package main
+
+import (
+	"fmt"
+	structdEnv "github.com/viscousbiscuit/structd-env"
+)
+
 type MyType struct {
 	FirstName    string
 	LastName     string `env:"LAST_NAME"`
 	BusinessName string
-	Age          uint `env:"AGE"`
+	Age          uint    `env:"AGE"`
 	NetWorth     float64
-	Active       bool `env:"IS_ACTIVE"`
+	Active       bool    `env:"IS_ACTIVE"`
 }
 
-func Main() {
-    structdEnv := Make[MyTestType]()
-    println(structdEnv.FirstName)
+func main() {
+ 	se, err := structdEnv.GetInstance[MyTestType]()
+    if err != nil {
+        fmt.Println(err)
+    }
+    env := se.Get()
+
+	fmt.Println("First Name:", env.FirstName)
+	fmt.Println("Last Name:", env.LastName)
+	fmt.Println("Age:", env.Age)
+	fmt.Println("Net Worth:", env.NetWorth)
+	fmt.Println("Active:", env.Active)
 }
+
 ```
 
-By default, a best effort attempt to match the environment variable to the struct field will be made. If two environment variables exist with the same name, but different casing use the `env` tag 
-to specify the environment variable name to use for that field.
+By default, the package attempts to match environment variables to struct fields using a best-effort approach. If multiple environment variables exist with the same name but different casing, use the `env` tag to specify which one to use.
 
-Adding `env` tags to your struct will allow you to specify the environment variable name to use for that field. If no `env` tag is provided, the field name will be used as the environment variable name.
+The `env` tag allows you to explicitly define the environment variable name for a struct field. If no `env` tag is provided, the field name will be used as the default.
 
+## `.env.json` Support
 
-## .env.json
+If an `.env.json` file is present, its values will override environment variables. Only top-level key-value pairs are supported—nested objects are not.
 
-If you provide an `.env.json` file the values will override the environment variables. Nested objects are not supported, only top level key value pairs are supported.
+### Example `.env.json` file:
 
 ```json
 {
-    "frst_name": "Tom",
-    "last_name": "Smith",
-    "AGE": 30,
+  "FIRST_NAME": "Tom",
+  "LAST_NAME": "Smith",
+  "AGE": 30
 }
 ```
