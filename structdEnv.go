@@ -205,7 +205,7 @@ func fileEnvMap() map[string]interface{} {
 func envMap() map[string]string {
 	envKeyMap := make(map[string]string)
 	for _, e := range os.Environ() {
-		envVal := strings.Split(e, "=")
+		envVal := strings.SplitN(e, "=", 2)
 		key := &envVal[0]
 		val := &envVal[1]
 

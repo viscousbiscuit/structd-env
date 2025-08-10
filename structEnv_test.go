@@ -15,7 +15,8 @@ type MyTestType struct {
 	BusinessName string
 	Age          uint `env:"AGE"`
 	NetWorth     float64
-	Active       bool `env:"IS_ACTIVE"`
+	Active       bool   `env:"IS_ACTIVE"`
+	QueryParam   string `env:"QUERY_PARAM"`
 }
 
 func TestMain(m *testing.M) {
@@ -54,6 +55,20 @@ func TestSet(test *testing.T) {
 		})
 
 	if se.Get().FirstName != "Alice" {
+		test.Fail()
+	}
+}
+
+func TestSpecialChar(test *testing.T) {
+	os.Setenv("QUERY_PARAM", "https://www.test.com?access=true")
+	se, er := structdEnv.GetInstance[MyTestType]()
+	se.Flush()
+
+	if er != nil {
+		fmt.Println(er)
+	}
+
+	if se.Get().QueryParam != "https://www.test.com?access=true" {
 		test.Fail()
 	}
 }
